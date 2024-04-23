@@ -1,0 +1,35 @@
+﻿@model IEnumerable<ResumeCheckSystem.Models.Resume>
+
+<style>
+    .btn-edit {
+        background: linear-gradient(to right, #A1B8F2, #8DCEA3);        
+    }
+
+    .btn-delete {
+        background: linear-gradient(to right, #F25D5D, #F2A55D);        
+    }
+</style>
+
+
+<h2>@ViewBag.FullName</h2>
+
+<table class="table">
+    <tr>
+        <th>Skill</th>
+        <th>Level</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.UserSkill.Skill.SkillName</td>
+            <td>@item.UserSkill.SkillLevel</td>
+        </tr>    
+    }
+</table>
+
+<div class="text-center">
+    <a asp-action="EditResume" class="btn btn-edit btn-width">Edit</a>
+    <a asp-action="DeleteResume" class="btn btn-delete btn-width">Delete</a>
+</div>
+
+
