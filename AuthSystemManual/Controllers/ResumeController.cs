@@ -7,21 +7,21 @@ namespace ResumeCheckSystem.Controllers
 {
     public class ResumeController : Controller
     {
-        private readonly ResumeCheckDBContext _context;        
+        private readonly ResumeCheckDBContext _context;
 
-        public ResumeController( ResumeCheckDBContext context)
-        {        
+        public ResumeController(ResumeCheckDBContext context)
+        {
             _context = context;
-        }      
+        }
 
         // DISPLAY RESUME
-        public IActionResult Index() 
+        public IActionResult Index()
         {
             HttpContext httpContext = HttpContext;
             if (SessionHelper.IsSessionActive(httpContext))
             {
                 string userEmail = SessionHelper.GetUserEmail(httpContext);
-                var user = _context.User.FirstOrDefault(u => u.Email == userEmail);                
+                var user = _context.User.FirstOrDefault(u => u.Email == userEmail);
 
                 var resume = _context.Resume
                            .Include(r => r.UserSkill)
@@ -30,14 +30,14 @@ namespace ResumeCheckSystem.Controllers
                            .ToList();
 
                 ViewBag.UserEmail = userEmail;
-                ViewBag.FullName = $"{user.FirstName} {user.LastName}"; 
-                                
+                ViewBag.FullName = $"{user.FirstName} {user.LastName}";
+
                 return View(resume);
             }
-            else 
+            else
             {
                 return RedirectToAction("Login", "Account");
-            }                                    
+            }
         }
 
         // CREATE RESUME
@@ -53,7 +53,7 @@ namespace ResumeCheckSystem.Controllers
             var skillCategories = _context.SkillCategory.ToList();
 
             ViewBag.SkillsByCategory = skillsByCategory;
-            ViewBag.SkillCategories = skillCategories;            
+            ViewBag.SkillCategories = skillCategories;
             return View(categoryData);
         }
 
@@ -62,7 +62,7 @@ namespace ResumeCheckSystem.Controllers
         [HttpPost]
         public IActionResult CreateResumeForm(IEnumerable<string> selectedSkills, IEnumerable<int> skillLevels)
         {
-            HttpContext httpContext = HttpContext;                        
+            HttpContext httpContext = HttpContext;
             int? userId = SessionHelper.GetUserId(httpContext);
 
             foreach (var pair in selectedSkills.Zip(skillLevels, (skill, level) => new { Skill = skill, Level = level }))
@@ -81,7 +81,7 @@ namespace ResumeCheckSystem.Controllers
 
                     _context.UserSkill.Add(userSkill);
                     _context.SaveChanges();
-                    
+
                     var resume = new Resume
                     {
                         UserId = Convert.ToInt32(userId),
@@ -101,7 +101,7 @@ namespace ResumeCheckSystem.Controllers
         public IActionResult DeleteProsessing()
         {
             string selectedValue = Request.Form["choose"];
-            
+
             if (selectedValue == "Yes")
             {
                 HttpContext httpContext = HttpContext;
@@ -114,7 +114,7 @@ namespace ResumeCheckSystem.Controllers
             else
             {
                 return RedirectToAction("Index", "Resume");
-            }            
+            }
         }
 
         // DELETE RESUME
@@ -124,11 +124,42 @@ namespace ResumeCheckSystem.Controllers
             return View();
         }
 
-        public IActionResult EditResume()
-        { 
-            return View();
-        }
-
         // EDIT RESUME
+        public IActionResult EditResume()
+        {
+            var categoryData = _context.SkillCategory.ToList();
+
+            // sort skills by category
+            var skillsByCategory = _context.Skill
+            .GroupBy(s => s.CategoryId) // sorting with category id
+            .Select(g => new { CategoryId = g.Key, Skills = g.ToList() })
+            .ToList();
+
+            var skillCategories = _context.SkillCategory.ToList();
+           
+            // get skills user already has in it`s resume
+            HttpContext httpContext = HttpContext;
+            int? userId = SessionHelper.GetUserId(httpContext);
+            // Get resume skills for the user
+            var resumeSkills = _context.Resume
+             .Where(x => x.UserId == userId)
+             .Include(x => x.UserSkill)
+             .ToList();
+
+
+
+            // Passing data to the page
+            ViewBag.SkillFromResume = resumeSkills;
+            ViewBag.SkillsByCategory = skillsByCategory;
+            ViewBag.SkillCategories = skillCategories;
+
+            return View(categoryData);           
+        }
+        
+        [HttpPost]
+        public IActionResult EditResumeForm()
+        {
+            return RedirectToAction("Index", "Home");
+        }
     }
 }

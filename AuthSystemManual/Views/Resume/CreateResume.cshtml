@@ -42,15 +42,11 @@
 </form>
 </div>
 
-<div>
-    <h2>@ViewBag.CheckedSkills</h2>
-</div>
-
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    document.addEventListener("DOMContentLoaded", function () {
         const checkboxes = document.querySelectorAll('input[type="checkbox"][data-toggle="skill-dropdown"]');
-        checkboxes.forEach(function(checkbox) {
-            checkbox.addEventListener('change', function() {
+        checkboxes.forEach(function (checkbox) {
+            checkbox.addEventListener('change', function () {
                 const dropdown = this.closest('tr').querySelector('.skill-level');
                 dropdown.disabled = !this.checked;
             });
