@@ -10,26 +10,34 @@
     }
 </style>
 
+@if (ViewBag.Display != "0")
+{
+    <h2>@ViewBag.FullName</h2>
 
-<h2>@ViewBag.FullName</h2>
-
-<table class="table">
-    <tr>
-        <th>Skill</th>
-        <th>Level</th>
-    </tr>
-    @foreach (var item in Model)
-    {
+    <table class="table">
         <tr>
-            <td>@item.UserSkill.Skill.SkillName</td>
-            <td>@item.UserSkill.SkillLevel</td>
-        </tr>    
+            <th>Skill</th>
+            <th>Level</th>
+        </tr>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.UserSkill.Skill.SkillName</td>
+                <td>@item.UserSkill.SkillLevel</td>
+            </tr>    
+        }
+    </table>
+}
+<div class="text-center">   
+    @if (ViewBag.Display == "0")
+    {
+        <a asp-action="CreateResume" class="btn btn-delete btn-width">Create Resume</a>
     }
-</table>
-
-<div class="text-center">
-    <a asp-action="EditResume" class="btn btn-edit btn-width">Edit</a>
-    <a asp-action="DeleteResume" class="btn btn-delete btn-width">Delete</a>
+    else
+    {
+        <a asp-action="EditResume" class="btn btn-edit btn-width">Edit</a>
+        <a asp-action="DeleteResume" class="btn btn-delete btn-width">Delete</a>
+    }
 </div>
 
 
