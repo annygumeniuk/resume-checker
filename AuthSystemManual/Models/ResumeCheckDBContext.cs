@@ -9,6 +9,7 @@ namespace ResumeCheckSystem.Models
         public DbSet<Skill> Skill { get; set; }
         public DbSet<UserSkill> UserSkill { get; set; }
         public DbSet<Resume> Resume { get; set; }
+        public DbSet<Vacancy> Vacancy { get; set; }
 
         public ResumeCheckDBContext(DbContextOptions options) : base(options)
         {

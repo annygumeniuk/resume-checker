@@ -106,7 +106,7 @@ namespace ResumeCheckSystem.Controllers
             return RedirectToAction("Index"); // redirecting to page with resume displayed
         }
 
-        public IActionResult DeleteProsessing()
+        public IActionResult DeleteProcessing()
         {
             string selectedValue = Request.Form["choose"];
 
@@ -127,8 +127,7 @@ namespace ResumeCheckSystem.Controllers
 
         // DELETE RESUME
         public IActionResult DeleteResume()
-        {
-            ViewBag.Delete = "Are you sure?";
+        {            
             return View();
         }
 

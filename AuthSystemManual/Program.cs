@@ -9,6 +9,7 @@ builder.Services.AddDbContext<ResumeCheckDBContext>(options =>
     options.UseSqlServer("Server=(local)\\sqlexpress;Database=ResumeCheckDB;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True")
 );
 
+// Add sessions
 builder.Services.AddSession(options =>
 {
     options.Cookie.Name = ".ResumeCheckSystem.Session";
