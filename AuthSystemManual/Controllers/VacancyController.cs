@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ResumeCheckSystem.Models;
+using System.Text.Json;
 
 namespace ResumeCheckSystem.Controllers
 {
@@ -144,12 +145,7 @@ namespace ResumeCheckSystem.Controllers
         public IActionResult EditVacancyForm(IEnumerable<string> selectedSkills, IEnumerable<int> skillLevels, string Title, string Description)
         {
             HttpContext httpContext = HttpContext;
-            int? userId = SessionHelper.GetUserId(httpContext);
-            // Get resume skills for the current user
-            var vacancySkills = _context.Vacancy
-             .Where(x => x.UserId == userId)
-             .Include(x => x.UserSkill)
-             .ToList();
+            int? userId = SessionHelper.GetUserId(httpContext);                        
             
             var currentVacancy = _context.Vacancy.FirstOrDefault(s => s.UserId == userId);
                                     
@@ -181,8 +177,8 @@ namespace ResumeCheckSystem.Controllers
             if (selectedValue == "Yes")
             {
                 HttpContext httpContext = HttpContext;
-                int? userId = SessionHelper.GetUserId(httpContext); // get current user id to delete it`s resume
-                var resume = _context.Resume.FirstOrDefault(s => s.UserId == userId); // findin`t the resume            
+                int? userId = SessionHelper.GetUserId(httpContext); // get current user id to delete it`s vacancy
+                var resume = _context.Resume.FirstOrDefault(s => s.UserId == userId); // findin`t the vacancy            
                 _context.Database.ExecuteSqlRaw("DELETE FROM Vacancy WHERE UserId = {0}", userId);
                 _context.SaveChanges(); // saving
                 return RedirectToAction("Index", "Home");
@@ -192,5 +188,80 @@ namespace ResumeCheckSystem.Controllers
                 return RedirectToAction("Index", "Vacancy");
             }
         }
+
+        public List<int> GetAllUsersId()
+        {
+            List<int> userIdList = _context.User
+                .Select(u => u.Id)
+                .ToList(); // get all user`s id
+
+            return userIdList;
+        }     
+                
+
+        public IActionResult FindEmployee()
+        {
+            HttpContext httpContext = HttpContext;
+            int? userId = SessionHelper.GetUserId(httpContext);
+
+            var userIdToSkip = Convert.ToInt32(userId);
+            var resumes = _context.Resume
+                .Where(x => x.UserId != userIdToSkip)
+                .Include(x => x.UserSkill);
+
+            var currentVacancies = _context.Vacancy
+                .Include(x => x.UserSkill)
+                .Where(s => s.UserId == userId)
+                .ToList(); // Execute the query to get actual Vacancy objects
+
+            List<int> userIdList = GetAllUsersId();
+            ResumeEvaluator resumeEvaluator = new ResumeEvaluator();
+
+            // initialize dictionaries to store the skills, levels and result
+            Dictionary<int, int> skillDictionaryVacancy = new Dictionary<int, int>();
+            Dictionary<int, int> skillDictionaryResume = new Dictionary<int, int>();
+            Dictionary<int?, int> evaluationResult = new Dictionary<int?, int>();
+
+            int selectedSkillsCounter = 0;
+            foreach (var vacancy in currentVacancies)
+            {                
+                var userSkill = vacancy.UserSkill;
+                if (userSkill != null)
+                {             
+                    skillDictionaryVacancy.Add(userSkill.SkillId, userSkill.SkillLevel);
+                    selectedSkillsCounter++;
+                }
+            }
+            
+            int currentId = userIdList[0];
+            foreach (var resume in resumes)
+            {
+                int idInLoop = resume.UserId;
+
+                if (currentId != idInLoop)
+                {
+                    currentId = idInLoop;
+                    int userFinalScore = 0;                   
+                    userFinalScore = resumeEvaluator.FindNeededSkills(skillDictionaryResume, skillDictionaryVacancy, selectedSkillsCounter);
+                    evaluationResult.Add(currentId, userFinalScore);
+                    // drop dictionary data to add resume skills for another user
+                    skillDictionaryResume.Clear();
+                }
+                else
+                {
+                    var userSkill = resume.UserSkill;
+                    if (userSkill != null)
+                    {
+                        // add all skills to the dictionary for the resumes with the same userid
+                        skillDictionaryResume.Add(userSkill.SkillId, userSkill.SkillLevel);
+                    }
+                }                
+            }
+
+            var largestKeys = evaluationResult.Values.OrderByDescending(k => k).Take(3);
+            
+            return View("EvaluationResult");
+        }
+
     }
 }
