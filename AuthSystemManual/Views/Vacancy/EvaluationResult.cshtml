@@ -1,1 +1,38 @@
-﻿
+﻿<div class="text-center">
+    <h2>Candidates for your vacancy whom we can recommend</h2>
+</div>
+
+<table class="table">    
+    <thead>
+        <tr>
+            <th>User Name</th>
+            <th>Resume</th>
+            <th></th>
+        </tr>
+    </thead>  
+    <tbody>
+    @foreach (var userName in ViewBag.UserNames)
+    {
+        <tr>
+            <td>
+                <h2>@userName</h2>
+            </td>
+        
+        
+            <td>
+            @foreach (var resumeSkills in ViewBag.ResumeSkills)
+            {            
+                <ul>
+                    <li>
+                        @resumeSkills
+                    </li>
+                </ul>                
+            }
+            </td>
+            <td>
+                <button class="btn btn-width btn-submit">Invite</button>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

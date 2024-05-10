@@ -196,7 +196,35 @@ namespace ResumeCheckSystem.Controllers
                 .ToList(); // get all user`s id
 
             return userIdList;
-        }     
+        }
+
+        public void DisplayEmployee(IEnumerable<KeyValuePair<int?, int>> biggestResult)
+        {
+            List<string> userNames = new List<string>();
+            List<string> resumeSkills = new List<string>();
+
+            foreach (var kvp in biggestResult)
+            {
+                var user = _context.User.FirstOrDefault(x => x.Id == kvp.Key);
+
+                if (user != null)
+                {
+                    userNames.Add($"{user.FirstName} {user.LastName}");
+                    var userResume = _context.Resume
+                        .Where(x => x.UserId == user.Id)
+                        .Include(x => x.UserSkill)
+                        .ThenInclude(x => x.Skill);
+
+                    foreach (var skl in userResume)
+                    {    
+                        resumeSkills.Add($"{skl.UserSkill.Skill.SkillName} {skl.UserSkill.SkillLevel}");                        
+                    }
+                }
+            }
+
+            ViewBag.UserNames = userNames;
+            ViewBag.ResumeSkills = resumeSkills;
+        }
                 
 
         public IActionResult FindEmployee()
@@ -204,7 +232,7 @@ namespace ResumeCheckSystem.Controllers
             HttpContext httpContext = HttpContext;
             int? userId = SessionHelper.GetUserId(httpContext);
 
-            var userIdToSkip = Convert.ToInt32(userId);
+            var userIdToSkip = Convert.ToInt32(userId); // skip vacancy owner
             var resumes = _context.Resume
                 .Where(x => x.UserId != userIdToSkip)
                 .Include(x => x.UserSkill);
@@ -258,8 +286,9 @@ namespace ResumeCheckSystem.Controllers
                 }                
             }
 
-            var largestKeys = evaluationResult.Values.OrderByDescending(k => k).Take(3);
-            
+            var biggestResult = evaluationResult.OrderByDescending(kv => kv.Value).Take(3);
+            DisplayEmployee(biggestResult);
+
             return View("EvaluationResult");
         }
 
