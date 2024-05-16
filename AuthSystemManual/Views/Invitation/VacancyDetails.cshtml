@@ -1,0 +1,18 @@
+﻿@model IEnumerable<ResumeCheckSystem.Models.Vacancy>
+
+<h2>@ViewBag.Title</h2>
+<p>@ViewBag.Description</p>
+
+<table class="table">
+    <tr>
+        <th>Skill</th>
+        <th>Level</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.UserSkill.Skill.SkillName</td>
+            <td>@item.UserSkill.SkillLevel</td>
+        </tr>
+    }
+</table>

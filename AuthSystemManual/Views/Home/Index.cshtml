@@ -3,7 +3,6 @@
 }
 @model IEnumerable<ResumeCheckSystem.Models.User>
 
-    <!-- class="text-center"  TO CENTER IT -->
 @if (!string.IsNullOrEmpty(ViewBag.UserEmail))
 {    
     @foreach (var item in Model)
@@ -12,9 +11,46 @@
         <p>@Html.DisplayFor(modelItem => item.Email)</p>
         <hr>
     }
-    <button type="button" class="btn btn-outline-dark" onclick="location.href='@Url.Action("Index", "Resume")'">My resume</button>
-    <button type="button" class="btn btn-outline-dark" onclick="location.href='@Url.Action("Index", "Vacancy")'">My Vacancy</button>
+    <button type="button" class="btn btn-width btn-outline-dark" onclick="location.href='@Url.Action("Index", "Resume")'">My resume</button>
+    <button type="button" class="btn btn-width btn-outline-dark" onclick="location.href='@Url.Action("Index", "Vacancy")'">My Vacancy</button>
     <hr>
+    if (!string.IsNullOrEmpty(ViewBag.Note))
+    {
+        <p>@ViewBag.Note</p>
+    }
+    else
+    {
+        <h2>Your job invitations!</h2>
+        <table class="table">            
+            <tr>                
+                <td>Vacancy Title</td>
+                <td>Invitation Status</td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>            
+            
+            @foreach (var invitation in ViewBag.Invitations)
+            {
+                var set = "";
+                var gradientSubmitted = "linear-gradient(to right, white, #A1B8F2, #8DCEA3)";
+                if (invitation.InvitationStatus == "Submitted")
+                {
+                    set = gradientSubmitted;
+                }
+
+                <tr style="background:@set">                
+                    <td>@invitation.Vacancy.Title</td>
+                    <td>@invitation.InvitationStatus</td>
+                    <td><button type="button" class="btn btn-width btn-outline-dark" name="invitationId" value="@invitation.Id" onclick="location.href='@Url.Action("SubmitInvitation", "Invitation", new { invitationId = invitation.Id })'">Submit</button></td>
+                    <td><button type="button" class="btn btn-width btn-outline-dark" name="invitationId" value="@invitation.Id" onclick="location.href='@Url.Action("DenyInvitation", "Invitation", new { invitationId = invitation.Id })'">Deny</button></td>
+                    <td><button type="button" class="btn btn-width btn-outline-dark" name="ownerUserId"  value="@invitation.Vacancy.UserId" onclick="location.href='@Url.Action("VacancyDetails", "Invitation", new { ownerUserId = invitation.Vacancy.UserId })'">Details</button></td>
+                </tr>
+                set = "";
+            }            
+        </table>
+
+    }
 } 
 else
 {

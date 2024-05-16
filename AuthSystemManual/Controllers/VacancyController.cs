@@ -225,7 +225,25 @@ namespace ResumeCheckSystem.Controllers
             ViewBag.UserNames = userNames;
             ViewBag.ResumeSkills = resumeSkills;
         }
-                
+
+        public int FindNeededSkills(Dictionary<int, int> resume, Dictionary<int, int> vacancy, int selectedSkills)
+        {
+            //int selectedSkills = vacancy.Count;
+            int userScore = 0;
+
+            foreach (var skill in resume)
+            {
+                if (vacancy.ContainsKey(skill.Key))
+                {
+                    Console.WriteLine($"{skill.Key}: {skill.Value}");
+                    userScore += skill.Value;
+                }
+            }
+
+            int userFinalScore = (100 * userScore) / (selectedSkills * 3);
+
+            return userFinalScore;
+        }
 
         public IActionResult FindEmployee()
         {
@@ -242,8 +260,7 @@ namespace ResumeCheckSystem.Controllers
                 .Where(s => s.UserId == userId)
                 .ToList(); // Execute the query to get actual Vacancy objects
 
-            List<int> userIdList = GetAllUsersId();
-            ResumeEvaluator resumeEvaluator = new ResumeEvaluator();
+            List<int> userIdList = GetAllUsersId();           
 
             // initialize dictionaries to store the skills, levels and result
             Dictionary<int, int> skillDictionaryVacancy = new Dictionary<int, int>();
@@ -270,7 +287,7 @@ namespace ResumeCheckSystem.Controllers
                 {
                     currentId = idInLoop;
                     int userFinalScore = 0;                   
-                    userFinalScore = resumeEvaluator.FindNeededSkills(skillDictionaryResume, skillDictionaryVacancy, selectedSkillsCounter);
+                    userFinalScore = FindNeededSkills(skillDictionaryResume, skillDictionaryVacancy, selectedSkillsCounter);
                     evaluationResult.Add(currentId, userFinalScore);
                     // drop dictionary data to add resume skills for another user
                     skillDictionaryResume.Clear();

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 
 namespace ResumeCheckSystem.Controllers
 {
@@ -28,9 +29,27 @@ namespace ResumeCheckSystem.Controllers
             else
             {
                 ViewBag.UserEmail = userEmail;
-                var data = _context.User.Where(x=> x.Email == userEmail).ToList();
-                var user = _context.User.FirstOrDefault(u => u.Email == userEmail);
-                int userId = user.Id;                
+                var data = _context.User
+                    .Where(x=> x.Email == userEmail)
+                    .ToList();
+                
+                var user = _context.User
+                    .FirstOrDefault(u => u.Email == userEmail);
+                
+                var vacancyInvitation = _context.VacancyInvitation
+                    .Where(x => x.UserId == user.Id)
+                    .Include(x => x.Vacancy)
+                    .ToList();
+
+                if (vacancyInvitation.IsNullOrEmpty())
+                {
+                    ViewBag.Note = "You don`t have any job invitations";
+                }
+                else
+                {
+                    ViewBag.Invitations = vacancyInvitation;
+                }
+
                 return View(data);
             }            
         }

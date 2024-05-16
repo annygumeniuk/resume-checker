@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ResumeCheckSystem.Models;
 using static Azure.Core.HttpHeader;
@@ -13,6 +14,7 @@ namespace ResumeCheckSystem.Controllers
         { 
             _context = context;
         }
+       
         public IActionResult ProcessInvitation(string userName)
         {
             // Get currently user or user who created vacancy
@@ -39,8 +41,8 @@ namespace ResumeCheckSystem.Controllers
             };
 
             // Check if we already invited some user
-            var checkIfExist = _context.VacancyInvitation.
-                Where(x => x.UserId == vacancyInvitation.UserId && x.VacancyId == vacancyInvitation.VacancyId);
+            var checkIfExist = _context.VacancyInvitation
+                .Where(x => x.UserId == vacancyInvitation.UserId && x.VacancyId == vacancyInvitation.VacancyId);
 
             if (checkIfExist.IsNullOrEmpty())
             {
@@ -54,5 +56,50 @@ namespace ResumeCheckSystem.Controllers
             
             return RedirectToAction("Index", "Home");
         }
+
+        // display vacancy details
+        public IActionResult VacancyDetails(int ownerUserId)
+        {
+            var vacancy = _context.Vacancy
+                         .Where(x => x.UserId == ownerUserId)
+                         .Include(r => r.UserSkill)
+                         .ThenInclude(us => us.Skill)
+                         .ToList();
+
+            var vac = _context.Vacancy.FirstOrDefault(x => x.UserId == ownerUserId);
+
+            ViewBag.Title = vac.Title;
+            ViewBag.Description = vac.Description;
+            ViewBag.Data = vacancy;
+            
+            return View(vacancy);
+        }
+
+        public IActionResult SubmitInvitation(int invitationId)
+        {
+            var invitation = _context.VacancyInvitation.FirstOrDefault(x => x.Id == invitationId);
+
+            if (invitation != null)
+            {
+                invitation.InvitationStatus = "Submitted";
+                _context.SaveChanges();
+            }            
+            
+            return RedirectToAction("Index", "Home");
+        }
+
+        public IActionResult DenyInvitation(int invitationId)
+        {
+            var invitation = _context.VacancyInvitation.FirstOrDefault(x => x.Id == invitationId);
+
+            if (invitation != null)
+            {
+                invitation.InvitationStatus = "Denied";
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
     }
 }
