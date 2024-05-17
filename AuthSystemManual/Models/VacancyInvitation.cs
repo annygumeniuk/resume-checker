@@ -7,7 +7,8 @@
         public int VacancyId           { get; set; }
         public string InvitationStatus { get; set; }
 
-        public virtual Vacancy Vacancy { get; set; }           
+        public virtual Vacancy Vacancy { get; set; }    
+        public virtual User User { get; set; }
     }
 }
 

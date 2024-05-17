@@ -51,6 +51,41 @@
         </table>
 
     }
+
+    if (!string.IsNullOrEmpty(ViewBag.InvitationNote))
+    {
+        <p>@ViewBag.InvitationNote</p>
+    }    
+    else if (ViewBag.InvitationSent != null)
+    {
+        <h2>Invitations you sent</h2>
+
+        <table class="table">
+            <tr>
+                <td>Vacancy Title</td>
+                <td>Invitation Status</td>
+                <td>User Name</td>            
+                <td>Contact</td>
+            </tr>
+            
+            @foreach (var invitation in ViewBag.InvitationSent)
+            {    
+                <tr>
+                    <td>@invitation.Vacancy.Title</td>
+                    <td>@invitation.InvitationStatus</td>
+                    <td>@invitation.User.FirstName <a>@invitation.User.LastName</a></td>
+                    @if (invitation.InvitationStatus == "Submitted")
+                    {
+                        <td>@invitation.User.Email</td>
+                    }
+                    else
+                    {
+                        <td><p style="color: rgba(0, 0, 0, 0.5)">Available after submitting</p></td>
+                    }
+                </tr>
+            }
+        </table>
+    }
 } 
 else
 {

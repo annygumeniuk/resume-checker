@@ -18,6 +18,54 @@ namespace ResumeCheckSystem.Controllers
             _context = context;
         }
 
+        public void CheckInvitationGet()
+        {
+            HttpContext httpContext = HttpContext;
+            int? userId = SessionHelper.GetUserId(httpContext);
+            
+            var vacancyInvitationGet = _context.VacancyInvitation
+                    .Where(x => x.UserId == userId)
+                    .Include(x => x.Vacancy)
+                    .ToList();
+
+            if (vacancyInvitationGet.IsNullOrEmpty())
+            {
+                ViewBag.Note = "You don`t have any job invitations";
+            }
+            else
+            {
+                ViewBag.Invitations = vacancyInvitationGet;
+            }
+        }
+
+        public void CheckInvitationSent()
+        {
+            HttpContext httpContext = HttpContext;
+            int? userId = SessionHelper.GetUserId(httpContext);
+
+            var vacanciesCurrentUserCreated = _context.Vacancy
+                .FirstOrDefault(x => x.UserId == userId);
+
+            if (vacanciesCurrentUserCreated != null)
+            {
+                var jobInvitationsForVacancies = _context.VacancyInvitation
+                    .Where(x => x.VacancyId == vacanciesCurrentUserCreated.Id)
+                    .Include(x => x.Vacancy)
+                    .Include(x => x.User)
+                    .ToList();
+
+                if (jobInvitationsForVacancies.IsNullOrEmpty())
+                {
+                    ViewBag.InvitationNote = "You haven`t sent any invitation yet.";
+                }
+                else
+                {
+                    ViewBag.InvitationSent = jobInvitationsForVacancies;
+                }
+            }
+
+        }
+
         public IActionResult Index()
         {
             string userEmail = HttpContext.Session.GetString("UserEmail");
@@ -32,23 +80,9 @@ namespace ResumeCheckSystem.Controllers
                 var data = _context.User
                     .Where(x=> x.Email == userEmail)
                     .ToList();
-                
-                var user = _context.User
-                    .FirstOrDefault(u => u.Email == userEmail);
-                
-                var vacancyInvitation = _context.VacancyInvitation
-                    .Where(x => x.UserId == user.Id)
-                    .Include(x => x.Vacancy)
-                    .ToList();
-
-                if (vacancyInvitation.IsNullOrEmpty())
-                {
-                    ViewBag.Note = "You don`t have any job invitations";
-                }
-                else
-                {
-                    ViewBag.Invitations = vacancyInvitation;
-                }
+                                
+                CheckInvitationGet();
+                CheckInvitationSent();
 
                 return View(data);
             }            
