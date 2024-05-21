@@ -8,30 +8,38 @@
             <tr>
                 <th>User Name</th>
                 <th>Resume</th>
+                <th>Resume Score</th>
                 <th></th>
             </tr>
         </thead>  
         <tbody>
-        @foreach (var userName in ViewBag.UserNames)
-        {
-            <tr>
-                <td>
-                    <h2>@userName</h2>
-                </td>
-        
-                <td>
-                @foreach (var resumeSkills in ViewBag.ResumeSkills)
-                {            
-                    <ul>
-                        <li>
-                            @resumeSkills
-                        </li>
-                    </ul>                
-                }
-                </td>
+            @for (int i = 0; i < ViewBag.UserNames.Count; i++)
+            {
+                var userName = ViewBag.UserNames[i];
+                var score = ViewBag.Scores[i];
+                
+                <tr>
+                    <td>
+                        <h2>@userName</h2>
+                    </td>
+
+                    <td>
+                        @foreach (var resumeSkills in ViewBag.ResumeSkills)
+                        {
+                            <ul>
+                                <li>
+                                    @resumeSkills
+                                </li>
+                            </ul>
+                        }
+                    </td>
+
+                    <td>
+                        <p>@score %</p>
+                    </td>
                 <td>
                     <button class="btn btn-width btn-submit" name="userName" value="@userName">Invite</button>
-                </td>
+                </td>                
             </tr>
         }
         </tbody>

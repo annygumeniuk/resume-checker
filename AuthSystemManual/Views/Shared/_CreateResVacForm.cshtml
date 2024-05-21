@@ -1,0 +1,32 @@
+﻿@foreach (var category in ViewBag.SkillCategories)
+{
+    <h2>@category.CategoryName</h2>
+    <table class="table" style="border-color: transparent;">
+        <th>Skill</th>
+        <th>Level</th>
+        @foreach (var skillGroup in ViewBag.SkillsByCategory)
+        {
+            if (skillGroup.CategoryId == category.Id)
+            {
+                foreach (var skill in skillGroup.Skills)
+                {
+                    <tr>
+                        <td style="width: 50%;">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="selectedSkills" value="@skill.SkillName" data-toggle="skill-dropdown">
+                                <label class="form-check-label">@skill.SkillName</label>
+                            </div>
+                        </td>
+                        <td style="width: 35%;" class="d-flex justify-content-start">
+                            <select class="form-select skill-level" name="skillLevels" disabled>
+                                <option value="1">Basic</option>
+                                <option value="2">Intermediate</option>
+                                <option value="3">Advanced</option>
+                            </select>
+                        </td>
+                    </tr>
+                }
+            }
+        }
+    </table>
+}

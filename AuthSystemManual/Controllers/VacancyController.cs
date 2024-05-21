@@ -202,6 +202,7 @@ namespace ResumeCheckSystem.Controllers
         {
             List<string> userNames = new List<string>();
             List<string> resumeSkills = new List<string>();
+            List<double> scores = new List<double>();
 
             foreach (var kvp in biggestResult)
             {
@@ -210,6 +211,7 @@ namespace ResumeCheckSystem.Controllers
                 if (user != null)
                 {
                     userNames.Add($"{user.FirstName} {user.LastName}");
+                    scores.Add(kvp.Value);
                     var userResume = _context.Resume
                         .Where(x => x.UserId == user.Id)
                         .Include(x => x.UserSkill)
@@ -224,6 +226,7 @@ namespace ResumeCheckSystem.Controllers
 
             ViewBag.UserNames = userNames;
             ViewBag.ResumeSkills = resumeSkills;
+            ViewBag.Scores = scores;
         }
 
         public int FindNeededSkills(Dictionary<int, int> resume, Dictionary<int, int> vacancy, int selectedSkills)

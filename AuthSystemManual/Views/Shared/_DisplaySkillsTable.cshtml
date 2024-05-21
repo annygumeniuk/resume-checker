@@ -1,0 +1,24 @@
+﻿<table class="table">
+    <tr>
+        <th>Skill</th>
+        <th>Level</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@item.UserSkill.Skill.SkillName</td>
+            @if (item.UserSkill.SkillLevel == 1)
+            {
+                <td>Basic</td>
+            }
+            else if (item.UserSkill.SkillLevel == 2)
+            {
+                <td>Intermediate</td>
+            }
+            else if (item.UserSkill.SkillLevel == 3)
+            {
+                <td>Advanced</td>
+            }
+        </tr>
+    }
+</table>

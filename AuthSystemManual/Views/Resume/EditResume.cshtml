@@ -34,12 +34,26 @@
                                         <label class="form-check-label">@skill.SkillName</label>
                                     </div>
                                 </td>
-                                    <td style="width: 20%;" class="d-flex justify-content-start">
+                                    <td style="width: 35%;" class="d-flex justify-content-start">
                                         <select class="form-select skill-level" name="skillLevels">
-                                            <option value="@level">@level</option>                                            
-                                            <option value="1">1</option>
-                                            <option value="2">2</option>
-                                            <option value="3">3</option>
+                                            @if (level == 1)
+                                            {
+                                                <option value="1" selected>Basic</option>
+                                                <option value="2">Intermediate</option>
+                                                <option value="3">Advanced</option>
+                                            }
+                                            else if (level == 2)
+                                            {
+                                                <option value="1">Basic</option>
+                                                <option value="2" selected>Intermediate</option>
+                                                <option value="3">Advanced</option>
+                                            }
+                                            else if (level == 3)
+                                            {
+                                                <option value="1">Basic</option>
+                                                <option value="2">Intermediate</option>
+                                                <option value="3" selected>Advanced</option>
+                                            }
                                         </select>
                                     </td>
                              </tr>
@@ -53,11 +67,11 @@
                                         <label class="form-check-label">@skill.SkillName</label>
                                     </div>
                                 </td>
-                                    <td style="width: 20%;" class="d-flex justify-content-start">
-                                        <select class="form-select skill-level" name="skillLevels" disabled>                                            
-                                            <option value="1">1</option>
-                                            <option value="2">2</option>
-                                            <option value="3">3</option>
+                                    <td style="width: 35%;" class="d-flex justify-content-start">
+                                        <select class="form-select skill-level" name="skillLevels" disabled>
+                                            <option value="1">Basic</option>
+                                            <option value="2">Intermediate</option>
+                                            <option value="3">Advanced</option>
                                         </select>
                                     </td>
                              </tr>
@@ -69,21 +83,10 @@
             </table>
         }
 
-
         <button class="btn btn-width btn-submit" type="submit">Submit</button>
     </form>
 </div>
 
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const checkboxes = document.querySelectorAll('input[type="checkbox"][data-toggle="skill-dropdown"]');
-        checkboxes.forEach(function (checkbox) {
-            checkbox.addEventListener('change', function () {
-                const dropdown = this.closest('tr').querySelector('.skill-level');
-                dropdown.disabled = !this.checked;
-            });
-        });
-    });
-</script>
+<script src="~/js/toggleDropdown.js"></script>
 
