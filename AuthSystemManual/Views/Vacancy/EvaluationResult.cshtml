@@ -3,7 +3,7 @@
 </div>
 
 <form asp-controller="Invitation" asp-action="ProcessInvitation" method="post">
-    <table class="table">    
+    <table class="table">
         <thead>
             <tr>
                 <th>User Name</th>
@@ -11,37 +11,38 @@
                 <th>Resume Score</th>
                 <th></th>
             </tr>
-        </thead>  
+        </thead>
         <tbody>
-            @for (int i = 0; i < ViewBag.UserNames.Count; i++)
+            @if (ViewBag.nameAndSkills != null && ViewBag.Scores != null && ViewBag.UserNames != null)
             {
-                var userName = ViewBag.UserNames[i];
-                var score = ViewBag.Scores[i];
-                
-                <tr>
-                    <td>
-                        <h2>@userName</h2>
-                    </td>
+                for (int i = 0; i < ViewBag.UserNames.Count; i++)
+                {
+                    var score = ViewBag.Scores[i];
+                    var userName = ViewBag.UserNames[i];
+                    var nameSkill = ViewBag.nameAndSkills[userName];
 
-                    <td>
-                        @foreach (var resumeSkills in ViewBag.ResumeSkills)
-                        {
+                    <tr>
+                        <td>
+                            <h2>@userName</h2>
+                            
+                        </td>
+                        <td>
                             <ul>
-                                <li>
-                                    @resumeSkills
-                                </li>
+                                @foreach (var skill in nameSkill)
+                                {
+                                    <li>@skill</li>
+                                }
                             </ul>
-                        }
-                    </td>
+                        </td>
 
-                    <td>
-                        <p>@score %</p>
-                    </td>
-                <td>
-                    <button class="btn btn-width btn-submit" name="userName" value="@userName">Invite</button>
-                </td>                
-            </tr>
-        }
+                        <td>@score %</td>
+
+                        <td>
+                            <button class="btn btn-width btn-submit" name="userName" value="@userName">Invite</button>
+                        </td>
+                    </tr>
+                }
+            }
         </tbody>
     </table>
 </form>

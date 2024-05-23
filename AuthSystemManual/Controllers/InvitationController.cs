@@ -46,7 +46,7 @@ namespace ResumeCheckSystem.Controllers
 
             if (checkIfExist.IsNullOrEmpty())
             {
-                // do something                 
+                // do something... or dont :)
             }
             else 
             {

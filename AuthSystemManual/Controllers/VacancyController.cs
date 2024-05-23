@@ -198,11 +198,20 @@ namespace ResumeCheckSystem.Controllers
             return userIdList;
         }
 
+        public string GetNormalSkillLevel(int lvl)
+        {
+            if      (lvl == 1) { return "Basic"; }
+            else if (lvl == 2) { return "Intermediate"; }
+            else               { return "Advanced"; }
+        }
+       
+
+
         public void DisplayEmployee(IEnumerable<KeyValuePair<int?, int>> biggestResult)
         {
-            List<string> userNames = new List<string>();
-            List<string> resumeSkills = new List<string>();
-            List<double> scores = new List<double>();
+            List<string> userNames = new List<string>();           
+            List<double> scores = new List<double>();            
+            Dictionary<string, List<string>> nameAndSkills = new Dictionary<string, List<string>>();
 
             foreach (var kvp in biggestResult)
             {
@@ -217,16 +226,19 @@ namespace ResumeCheckSystem.Controllers
                         .Include(x => x.UserSkill)
                         .ThenInclude(x => x.Skill);
 
+                    List<string> info = new List<string>();
                     foreach (var skl in userResume)
-                    {    
-                        resumeSkills.Add($"{skl.UserSkill.Skill.SkillName} {skl.UserSkill.SkillLevel}");                        
+                    {                           
+                        info.Add($"{skl.UserSkill.Skill.SkillName} - {GetNormalSkillLevel(skl.UserSkill.SkillLevel)}");
                     }
+                    
+                    nameAndSkills.Add($"{user.FirstName} {user.LastName}", info);                                       
                 }
-            }
+            }           
 
-            ViewBag.UserNames = userNames;
-            ViewBag.ResumeSkills = resumeSkills;
+            ViewBag.UserNames = userNames;           
             ViewBag.Scores = scores;
+            ViewBag.NameAndSkills = nameAndSkills;
         }
 
         public int FindNeededSkills(Dictionary<int, int> resume, Dictionary<int, int> vacancy, int selectedSkills)
