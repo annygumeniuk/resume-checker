@@ -28,9 +28,15 @@ namespace ResumeCheckSystem.Controllers
                            .ThenInclude(us => us.Skill)
                            .Where(x => x.UserId == user.Id)
                            .ToList();
+                
+                var currentResume = _context.Resume.FirstOrDefault(x => x.UserId == user.Id);
 
                 ViewBag.UserEmail = userEmail;
                 ViewBag.FullName = $"{user.FirstName} {user.LastName}";
+                if (currentResume != null)
+                {
+                    ViewBag.AdditionalSkills = $"{currentResume.AdditionalSkills}";
+                }                
 
                 if (resume.Count == 0)
                 {
@@ -45,7 +51,7 @@ namespace ResumeCheckSystem.Controllers
             }
         }
 
-        void AddSkillsToDb(IEnumerable<string> selectedSkills, IEnumerable<int> skillLevels, int? userId)
+        void AddSkillsToDb(IEnumerable<string> selectedSkills, IEnumerable<int> skillLevels, int? userId, string AdditionalSkills)
         {
             foreach (var pair in selectedSkills.Zip(skillLevels, (skill, level) => new { Skill = skill, Level = level }))
             {
@@ -68,7 +74,8 @@ namespace ResumeCheckSystem.Controllers
                     {
                         UserId = Convert.ToInt32(userId),
                         // Use the UserSkill ID instead of SkillId
-                        UserSkillId = userSkill.Id
+                        UserSkillId = userSkill.Id,
+                        AdditionalSkills = AdditionalSkills
                     };
                     _context.Resume.Add(resume);
                 }
@@ -96,12 +103,12 @@ namespace ResumeCheckSystem.Controllers
 
         // RESUME CREATING FORM PROSESSING
         [HttpPost]
-        public IActionResult CreateResumeForm(IEnumerable<string> selectedSkills, IEnumerable<int> skillLevels)
+        public IActionResult CreateResumeForm(IEnumerable<string> selectedSkills, IEnumerable<int> skillLevels, string AdditionalSkills)
         {
             HttpContext httpContext = HttpContext;
             int? userId = SessionHelper.GetUserId(httpContext);
 
-            AddSkillsToDb(selectedSkills, skillLevels, userId);
+            AddSkillsToDb(selectedSkills, skillLevels, userId, AdditionalSkills);
 
             return RedirectToAction("Index"); // redirecting to page with resume displayed
         }
@@ -115,7 +122,7 @@ namespace ResumeCheckSystem.Controllers
                 HttpContext httpContext = HttpContext;
                 int? userId = SessionHelper.GetUserId(httpContext); // get current user id to delete it`s resume
                 var resume = _context.Resume.FirstOrDefault(s => s.UserId == userId); // findin`t the resume            
-                _context.Database.ExecuteSqlRaw("DELETE FROM Resume WHERE UserId = {0}", userId);
+                _context.Database.ExecuteSqlRaw("DELETE FROM Resume WHERE UserId = {0}", userId);                
                 _context.SaveChanges(); // saving
                 return RedirectToAction("Index", "Home");
             }
@@ -153,17 +160,20 @@ namespace ResumeCheckSystem.Controllers
              .Include(x => x.UserSkill)
              .ToList();
 
+            var currentResume = _context.Resume.FirstOrDefault(x => x.UserId == userId);
+            ViewBag.AdditionalSkills = $"{currentResume.AdditionalSkills}";
+
             // Passing data to the page
             ViewBag.SkillFromResume = resumeSkills;
             ViewBag.SkillsByCategory = skillsByCategory;
-            ViewBag.SkillCategories = skillCategories;
+            ViewBag.SkillCategories = skillCategories;            
 
             return View(categoryData);           
         }
         
         // PROCESSING EDITING FORM
         [HttpPost]
-        public IActionResult EditResumeForm(IEnumerable<string> selectedSkills, IEnumerable<int> skillLevels)
+        public IActionResult EditResumeForm(IEnumerable<string> selectedSkills, IEnumerable<int> skillLevels, string AdditionalSkills)
         {
             HttpContext httpContext = HttpContext;
             int? userId = SessionHelper.GetUserId(httpContext);
@@ -174,7 +184,7 @@ namespace ResumeCheckSystem.Controllers
              .ToList();
                         
             _context.Database.ExecuteSqlRaw("DELETE FROM Resume WHERE UserId = {0}", userId);
-            AddSkillsToDb(selectedSkills, skillLevels, userId);            
+            AddSkillsToDb(selectedSkills, skillLevels, userId, AdditionalSkills);            
 
             return RedirectToAction("Index", "Home");
         }

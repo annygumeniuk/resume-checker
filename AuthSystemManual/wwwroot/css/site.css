@@ -44,3 +44,7 @@ body {
 .btn-delete {
     background: linear-gradient(to right, #F25D5D, #F2A55D);
 }
+
+.transparent-text {
+    color: rgba(0, 0, 0, 0.5);
+}

@@ -5,6 +5,11 @@
     <h2>@ViewBag.FullName</h2>
 
     @Html.Partial("_DisplaySkillsTable")
+
+    if (ViewBag.AdditionalSkills != null)
+    {
+        <p>@ViewBag.AdditionalSkills</p>
+    }
 }
 <div class="text-center">   
     @if (ViewBag.Display == "0")

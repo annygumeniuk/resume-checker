@@ -43,16 +43,12 @@ namespace ResumeCheckSystem.Controllers
             // Check if we already invited some user
             var checkIfExist = _context.VacancyInvitation
                 .Where(x => x.UserId == vacancyInvitation.UserId && x.VacancyId == vacancyInvitation.VacancyId);
-
+                        
             if (checkIfExist.IsNullOrEmpty())
-            {
-                // do something... or dont :)
-            }
-            else 
-            {
+            {             
                 _context.Add(vacancyInvitation);
                 _context.SaveChanges();
-            }            
+            }                      
             
             return RedirectToAction("Index", "Home");
         }
@@ -95,6 +91,19 @@ namespace ResumeCheckSystem.Controllers
             if (invitation != null)
             {
                 invitation.InvitationStatus = "Denied";
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction("Index", "Home");
+        }
+
+        public IActionResult DeleteInvitation(int invitationId)
+        {
+            var invitation = _context.VacancyInvitation.FirstOrDefault(x => x.Id == invitationId);
+            
+            if (invitation != null)
+            {
+                _context.Database.ExecuteSqlRaw("DELETE FROM VacancyInvitation WHERE Id = {0}", invitation.Id);
                 _context.SaveChanges();
             }
 

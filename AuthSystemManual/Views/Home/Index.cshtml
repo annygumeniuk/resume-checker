@@ -66,8 +66,9 @@
                 <td>Invitation Status</td>
                 <td>User Name</td>            
                 <td>Contact</td>
+                <td></td>
             </tr>
-            
+            <form asp-action="DeleteInvitation" asp-controller="Invitation" method="post">
             @foreach (var invitation in ViewBag.InvitationSent)
             {    
                 <tr>
@@ -80,10 +81,14 @@
                     }
                     else
                     {
-                        <td><p style="color: rgba(0, 0, 0, 0.5)">Available after submitting</p></td>
+                        <td><p class="transparent-text">Available after submitting</p></td>
                     }
+                    <td>
+                        <button class="btn btn-width btn-submit" name="invitationId" value="@invitation.Id">Delete invitation</button>
+                    </td>
                 </tr>
             }
+            </form>
         </table>
     }
 } 

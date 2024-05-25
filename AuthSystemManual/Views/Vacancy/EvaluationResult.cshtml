@@ -20,6 +20,11 @@
                     var score = ViewBag.Scores[i];
                     var userName = ViewBag.UserNames[i];
                     var nameSkill = ViewBag.nameAndSkills[userName];
+                    var additionalSkills = "";
+                    if (ViewBag.AdditionalSkills != null)
+                    {
+                        additionalSkills = ViewBag.AdditionalSkills[i];
+                    }
 
                     <tr>
                         <td>
@@ -29,10 +34,18 @@
                         <td>
                             <ul>
                                 @foreach (var skill in nameSkill)
-                                {
-                                    <li>@skill</li>
+                                {                                    
+                                    var parts = skill.Split(new[] { "::" }, StringSplitOptions.None);
+                                    var mainText = parts[0];
+                                    var smallText = parts.Length > 1 ? parts[1] : string.Empty;
+                                    <li>@mainText <span class="transparent-text">@smallText</span></li>
                                 }
                             </ul>
+                            @if (additionalSkills != "")
+                            {
+                                <p>Additional Skills:</p>
+                                <p>@additionalSkills</p>
+                            }                           
                         </td>
 
                         <td>@score %</td>

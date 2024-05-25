@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ResumeCheckSystem.Models;
+using System.Diagnostics;
 using System.Text.Json;
 
 namespace ResumeCheckSystem.Controllers
@@ -20,7 +21,7 @@ namespace ResumeCheckSystem.Controllers
             if (SessionHelper.IsSessionActive(httpContext))
             {
                 string userEmail = SessionHelper.GetUserEmail(httpContext);
-                var user = _context.User.FirstOrDefault(u => u.Email == userEmail);
+                var user = _context.User.FirstOrDefault(u => u.Email == userEmail);                
 
                 var vacancy = _context.Vacancy
                            .Include(r => r.UserSkill)
@@ -55,12 +56,10 @@ namespace ResumeCheckSystem.Controllers
             var skillsByCategory = _context.Skill
             .GroupBy(s => s.CategoryId)
             .Select(g => new { CategoryId = g.Key, Skills = g.ToList() })
-            .ToList();
-
-            var skillCategories = _context.SkillCategory.ToList();
+            .ToList();            
 
             ViewBag.SkillsByCategory = skillsByCategory;
-            ViewBag.SkillCategories = skillCategories;
+            ViewBag.SkillCategories = categoryData;
             return View(categoryData);            
         }
 
@@ -115,9 +114,7 @@ namespace ResumeCheckSystem.Controllers
             var skillsByCategory = _context.Skill
             .GroupBy(s => s.CategoryId) // sorting with category id
             .Select(g => new { CategoryId = g.Key, Skills = g.ToList() })
-            .ToList();
-
-            var skillCategories = _context.SkillCategory.ToList();
+            .ToList();            
 
             // get skills user already has in it`s resume
             HttpContext httpContext = HttpContext;
@@ -131,7 +128,7 @@ namespace ResumeCheckSystem.Controllers
             // Passing data to the page
             ViewBag.SkillFromVacancy = vacancySkills; // change in view
             ViewBag.SkillsByCategory = skillsByCategory;
-            ViewBag.SkillCategories = skillCategories;
+            ViewBag.SkillCategories = categoryData;
 
             var currentVacancy = _context.Vacancy.FirstOrDefault(s => s.UserId == userId);
             ViewBag.Title = $"{currentVacancy.Title}";
@@ -204,7 +201,7 @@ namespace ResumeCheckSystem.Controllers
             else if (lvl == 2) { return "Intermediate"; }
             else               { return "Advanced"; }
         }
-       
+
 
 
         public void DisplayEmployee(IEnumerable<KeyValuePair<int?, int>> biggestResult)
@@ -212,6 +209,7 @@ namespace ResumeCheckSystem.Controllers
             List<string> userNames = new List<string>();           
             List<double> scores = new List<double>();            
             Dictionary<string, List<string>> nameAndSkills = new Dictionary<string, List<string>>();
+            List<string> additionalSkills = new List<string>();
 
             foreach (var kvp in biggestResult)
             {
@@ -223,13 +221,25 @@ namespace ResumeCheckSystem.Controllers
                     scores.Add(kvp.Value);
                     var userResume = _context.Resume
                         .Where(x => x.UserId == user.Id)
-                        .Include(x => x.UserSkill)
-                        .ThenInclude(x => x.Skill);
+                        .Include(x => x.UserSkill)                        
+                        .ThenInclude(x => x.Skill).ThenInclude(x => x.SkillCategory);
 
                     List<string> info = new List<string>();
                     foreach (var skl in userResume)
                     {                           
-                        info.Add($"{skl.UserSkill.Skill.SkillName} - {GetNormalSkillLevel(skl.UserSkill.SkillLevel)}");
+                        info.Add($"{skl.UserSkill.Skill.SkillName} - {GetNormalSkillLevel(skl.UserSkill.SkillLevel)}:: {skl.UserSkill.Skill.SkillCategory.CategoryName}");
+
+                        if (skl.AdditionalSkills != null)
+                        {
+                            if (!additionalSkills.Contains(skl.AdditionalSkills))
+                            {
+                                additionalSkills.Add(skl.AdditionalSkills);
+                            }                            
+                        }
+                        else
+                        {
+                            additionalSkills.Add("");
+                        }
                     }
                     
                     nameAndSkills.Add($"{user.FirstName} {user.LastName}", info);                                       
@@ -239,25 +249,48 @@ namespace ResumeCheckSystem.Controllers
             ViewBag.UserNames = userNames;           
             ViewBag.Scores = scores;
             ViewBag.NameAndSkills = nameAndSkills;
+            ViewBag.AdditionalSkills = additionalSkills;
         }
 
-        public int FindNeededSkills(Dictionary<int, int> resume, Dictionary<int, int> vacancy, int selectedSkills)
+        public int FindNeededSkills(Dictionary<int, int> resume, Dictionary<int, int> vacancy, int selectedSkills, int currId)
         {
             //int selectedSkills = vacancy.Count;
             int userScore = 0;
+
+            // get user just to write name in debug window
+            var user = _context.User.FirstOrDefault(x => x.Id == currId);            
 
             foreach (var skill in resume)
             {
                 if (vacancy.ContainsKey(skill.Key))
                 {
-                    Console.WriteLine($"{skill.Key}: {skill.Value}");
+                    //Console.WriteLine($"{skill.Key}: {skill.Value}");
+                    string name = _context.Skill.FirstOrDefault(x => x.Id == skill.Key).SkillName;                    
                     userScore += skill.Value;
                 }
             }
 
-            int userFinalScore = (100 * userScore) / (selectedSkills * 3);
+            int userFinalScore = (100 * userScore) / (selectedSkills * 3);            
 
             return userFinalScore;
+        }
+
+        public Dictionary<int, int> FillResumeDictionary(int id)//Resume? resume)
+        {
+            Dictionary<int, int> skillDictionaryResume = new Dictionary<int, int>();
+
+            var resumes = _context.Resume.Where(x => x.UserId == id).Include(x => x.UserSkill);
+
+            foreach (var res in resumes)
+            {
+                var userSkill = res.UserSkill;                
+                if (userSkill != null)
+                {
+                    skillDictionaryResume.Add(userSkill.SkillId, userSkill.SkillLevel);                    
+                }
+            }
+
+            return skillDictionaryResume;
         }
 
         public IActionResult FindEmployee()
@@ -266,21 +299,26 @@ namespace ResumeCheckSystem.Controllers
             int? userId = SessionHelper.GetUserId(httpContext);
 
             var userIdToSkip = Convert.ToInt32(userId); // skip vacancy owner
-            var resumes = _context.Resume
+            
+            var resumes = _context.Resume  // get all resumes
                 .Where(x => x.UserId != userIdToSkip)
                 .Include(x => x.UserSkill);
 
-            var currentVacancies = _context.Vacancy
+            var currentVacancies = _context.Vacancy // get current vacancy
                 .Include(x => x.UserSkill)
                 .Where(s => s.UserId == userId)
-                .ToList(); // Execute the query to get actual Vacancy objects
+                .ToList();
+
+            var users = _context.User // get all users
+               .Where(x => x.Id != userIdToSkip)
+               .ToList();
 
             List<int> userIdList = GetAllUsersId();           
 
             // initialize dictionaries to store the skills, levels and result
-            Dictionary<int, int> skillDictionaryVacancy = new Dictionary<int, int>();
-            Dictionary<int, int> skillDictionaryResume = new Dictionary<int, int>();
-            Dictionary<int?, int> evaluationResult = new Dictionary<int?, int>();
+            Dictionary<int, int> skillDictionaryVacancy = new Dictionary<int, int>(); // here we store skills and levels from vacancy which we looking for candidate
+            Dictionary<int, int> skillDictionaryResume = new Dictionary<int, int>(); // here we store resume skills and levels which we pass to get resume grade
+            Dictionary<int?, int> evaluationResult = new Dictionary<int?, int>(); // store user id and its final grade
 
             int selectedSkillsCounter = 0;
             foreach (var vacancy in currentVacancies)
@@ -291,31 +329,18 @@ namespace ResumeCheckSystem.Controllers
                     skillDictionaryVacancy.Add(userSkill.SkillId, userSkill.SkillLevel);
                     selectedSkillsCounter++;
                 }
-            }
-            
-            int currentId = userIdList[0];
-            foreach (var resume in resumes)
-            {
-                int idInLoop = resume.UserId;
+            }                        
 
-                if (currentId != idInLoop)
-                {
-                    currentId = idInLoop;
-                    int userFinalScore = 0;                   
-                    userFinalScore = FindNeededSkills(skillDictionaryResume, skillDictionaryVacancy, selectedSkillsCounter);
-                    evaluationResult.Add(currentId, userFinalScore);
-                    // drop dictionary data to add resume skills for another user
-                    skillDictionaryResume.Clear();
-                }
-                else
-                {
-                    var userSkill = resume.UserSkill;
-                    if (userSkill != null)
-                    {
-                        // add all skills to the dictionary for the resumes with the same userid
-                        skillDictionaryResume.Add(userSkill.SkillId, userSkill.SkillLevel);
-                    }
-                }                
+            foreach (var userC in users)
+            {                
+                skillDictionaryResume = FillResumeDictionary(userC.Id);                
+
+                //evaluate result
+                int userFinalScore = FindNeededSkills(skillDictionaryResume, skillDictionaryVacancy, selectedSkillsCounter, userC.Id);
+                
+                // add the results to dictionary
+                evaluationResult.Add(userC.Id, userFinalScore);
+                skillDictionaryResume.Clear();
             }
 
             var biggestResult = evaluationResult.OrderByDescending(kv => kv.Value).Take(3);

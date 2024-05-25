@@ -5,7 +5,13 @@
 
 <div>
     <form asp-action="CreateResumeForm" method="post">
-       @Html.Partial("_CreateResVacForm")        
+       @Html.Partial("_CreateResVacForm")
+
+        <div class="form-group">
+            <label for="AdditionalSkills">Additional Skills</label><br>
+            <input class="form-control input-width" name="AdditionalSkills" type="text" placeholder="You can enter additional skills here"><br>
+        </div>
+
        <button class="btn btn-width btn-submit" type="submit">Submit</button>
     </form>
 </div>
